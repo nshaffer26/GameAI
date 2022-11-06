@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // A list of possible seating locations
-    List<Seat> seats;
-
     // Start is called before the first frame update
     void Start()
     {

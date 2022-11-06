@@ -4,17 +4,10 @@ using UnityEngine;
 
 public class Seat : MonoBehaviour
 {
-    public bool m_empty = true;
+    public Table m_table;
 
-    void Update()
+    void Start()
     {
-        if(m_empty)
-        {
-            gameObject.tag = "EmptyChair";
-        }
-        else
-        {
-            gameObject.tag = null;
-        }
+        m_table = this.GetComponentInParent<Table>();
     }
 }

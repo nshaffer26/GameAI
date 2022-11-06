@@ -14,17 +14,23 @@ public class Eat : Actions
 
     public override bool CheckProceduralPreconditions(Agents agent)
     {
-        // Food nearby
-        return true;
+        // Is there food at the table?
+        if(agent.target.GetComponent<Seat>().m_table.m_foodAvailable > 0)
+        {
+            return true;
+        }
+        return false;
     }
 
     public override void Perform(Agents agent)
     {
+        // This agent's table has 1 less food
+        agent.seat.m_table.m_foodAvailable--;
 
-    }
+        // Update relevant worldState values for this agent
+        agent.isHungry = false;
 
-    public override void ResetAction()
-    {
-        throw new System.NotImplementedException();
+        // This action is finished
+        done = true;
     }
 }

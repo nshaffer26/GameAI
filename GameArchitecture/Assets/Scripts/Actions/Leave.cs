@@ -13,17 +13,21 @@ public class Leave : Actions
 
     public override bool CheckProceduralPreconditions(Agents agent)
     {
-        // No procedural pre-conditions for this action
+        // Find the exit
+        agent.target = exit;
+
         return true;
     }
 
     public override void Perform(Agents agent)
     {
+        // This seat is empty again
+        agent.seat.gameObject.tag = "EmptyChair";
 
-    }
+        // Update relevant worldState values for this agent
+        agent.sittingDown = false;
 
-    public override void ResetAction()
-    {
-        throw new System.NotImplementedException();
+        // This action is finished
+        done = true;
     }
 }

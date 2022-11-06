@@ -9,8 +9,21 @@ public class Agents : MonoBehaviour
     // The current state of this agent
     FSMState state;
 
+    // The starting state of the world
+    HashSet<KeyValuePair<string, object>> m_worldState;
+    // Customer relevant states
+    public bool sittingDown = false;
+    public bool isHungry = true;
+    // Waiter relevant states
+    public int foodHeld = 0;
+
+    // The goal state, will only ever be one for now
+    public KeyValuePair<string, object> goal;
+
+    public Seat seat;
+
     // This agent's speed
-    float speed = 1.0f;
+    public float speed = 1.0f;
 
     // All valid actions
     public Stack<Actions> validActions;
@@ -20,10 +33,20 @@ public class Agents : MonoBehaviour
     // This agent's target (either what they should be acting on or moving towards)
     public GameObject target;
 
+    public HashSet<KeyValuePair<string, object>> GetWorldState()
+    {
+        m_worldState = new HashSet<KeyValuePair<string, object>>();
+
+        m_worldState.Add(new KeyValuePair<string, object>("sittingDown", sittingDown));
+        m_worldState.Add(new KeyValuePair<string, object>("isHungry", isHungry));
+        m_worldState.Add(new KeyValuePair<string, object>("hasFood", (foodHeld > 0)));
+
+        return m_worldState;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -57,7 +80,7 @@ public class Agents : MonoBehaviour
                 }
                 else
                 {
-                    //false, state = idle, plan
+                    //false, state = idle
                 }
                 break;
         }

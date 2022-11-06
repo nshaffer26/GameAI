@@ -41,11 +41,17 @@ public class SitDown : Actions
 
     public override void Perform(Agents agent)
     {
-        
-    }
+        // Record where this agent is sitting
+        agent.seat = agent.target.GetComponent<Seat>();
+        // This seat should no longer have the "EmptyChair" tag
+        agent.seat.gameObject.tag = null;
+        // This agent is now waiting for food
+        agent.gameObject.tag = "Waiting";
 
-    public override void ResetAction()
-    {
-        throw new System.NotImplementedException();
+        // Update relevant worldState values for this agent
+        agent.sittingDown = true;
+
+        // This action is finished
+        done = true;
     }
 }

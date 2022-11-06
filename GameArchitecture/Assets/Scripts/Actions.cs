@@ -13,10 +13,14 @@ public abstract class Actions : MonoBehaviour
     // Has the action been performed
     public bool done = false;
 
-    /// <summary>
-    /// Reset this action back to its default state so it can be checked again.
-    /// </summary>
-    public abstract void ResetAction();
+    public GameObject counter;
+    public GameObject exit;
+
+    public Actions()
+    {
+        counter = GameObject.Find("Counter");
+        exit = GameObject.Find("Exit");
+    }
 
     /// <summary>
     /// This method should check this action to see if it can be performed.
