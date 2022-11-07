@@ -2,24 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class Actions : MonoBehaviour
+public abstract class Actions
 {
     public HashSet<KeyValuePair<string, object>> m_preconditions;
     public HashSet<KeyValuePair<string, object>> m_effects;
 
-    public int cost;
+    public float cost;
     public bool requiresProximity = true;
 
     // Has the action been performed
     public bool done = false;
 
-    public GameObject counter;
-    public GameObject exit;
+    public string actionType;
 
     public Actions()
     {
-        counter = GameObject.Find("Counter");
-        exit = GameObject.Find("Exit");
+        m_preconditions = new HashSet<KeyValuePair<string, object>>();
+        m_effects = new HashSet<KeyValuePair<string, object>>();
+
+        cost = 1f;
     }
 
     /// <summary>

@@ -10,6 +10,8 @@ public class DeliverFood : Actions
         m_preconditions.Add(new KeyValuePair<string, object>("hasFood", true));
         m_effects.Add(new KeyValuePair<string, object>("hasFood", false));
         m_effects.Add(new KeyValuePair<string, object>("serveCustomer", true));
+
+        actionType = "DeliverFood";
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
@@ -24,11 +26,11 @@ public class DeliverFood : Actions
             if (closest == null)
             {
                 closest = customer;
-                minDist = (customer.transform.position - agent.transform.position).magnitude;
+                minDist = Vector3.Distance(customer.transform.position, agent.transform.position);
             }
             else
             {
-                float dist = (customer.transform.position - agent.transform.position).magnitude;
+                float dist = Vector3.Distance(customer.transform.position, agent.transform.position);
                 if (dist < minDist)
                 {
                     closest = customer;
@@ -44,7 +46,7 @@ public class DeliverFood : Actions
     public override void Perform(Agents agent)
     {
         // Give all held food to the table
-        agent.target.GetComponent<Seat>().m_table.m_foodAvailable += agent.foodHeld;
+        agent.target.GetComponent<Agents>().seat.m_table.m_foodAvailable += agent.foodHeld;
 
         // Update relevant worldState values for this agent
         agent.foodHeld = 0;

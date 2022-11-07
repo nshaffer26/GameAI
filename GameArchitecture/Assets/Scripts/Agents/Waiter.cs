@@ -10,5 +10,10 @@ public class Waiter : Agents
 
         // TODO: Keep different speed?
         speed = 2.0f;
+
+        m_validActions.Add(new CollectFood());
+        m_validActions.Add(new DeliverFood());
+
+        agentType = "Waiter";
     }
 }

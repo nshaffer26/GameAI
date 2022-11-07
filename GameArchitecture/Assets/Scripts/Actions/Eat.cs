@@ -10,12 +10,14 @@ public class Eat : Actions
 
         m_preconditions.Add(new KeyValuePair<string, object>("isHungry", true));
         m_effects.Add(new KeyValuePair<string, object>("isHungry", false));
+
+        actionType = "Eat";
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
     {
         // Is there food at the table?
-        if(agent.target.GetComponent<Seat>().m_table.m_foodAvailable > 0)
+        if(agent.seat != null && agent.seat.m_table.m_foodAvailable > 0)
         {
             return true;
         }
@@ -26,6 +28,8 @@ public class Eat : Actions
     {
         // This agent's table has 1 less food
         agent.seat.m_table.m_foodAvailable--;
+        // This agent is no longer waiting for food
+        agent.gameObject.tag = "Untagged";
 
         // Update relevant worldState values for this agent
         agent.isHungry = false;

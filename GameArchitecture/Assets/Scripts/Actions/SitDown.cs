@@ -8,6 +8,9 @@ public class SitDown : Actions
     {
         m_preconditions.Add(new KeyValuePair<string, object>("sittingDown", false));
         m_effects.Add(new KeyValuePair<string, object>("sittingDown", true));
+        m_effects.Add(new KeyValuePair<string, object>("sitDown", true));
+
+        actionType = "SitDown";
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
@@ -22,11 +25,11 @@ public class SitDown : Actions
             if (closest == null)
             {
                 closest = seat;
-                minDist = (seat.transform.position - agent.transform.position).magnitude;
+                minDist = Vector3.Distance(seat.transform.position, agent.transform.position);
             }
             else
             {
-                float dist = (seat.transform.position - agent.transform.position).magnitude;
+                float dist = Vector3.Distance(seat.transform.position, agent.transform.position);
                 if (dist < minDist)
                 {
                     closest = seat;
@@ -44,12 +47,15 @@ public class SitDown : Actions
         // Record where this agent is sitting
         agent.seat = agent.target.GetComponent<Seat>();
         // This seat should no longer have the "EmptyChair" tag
-        agent.seat.gameObject.tag = null;
+        agent.seat.gameObject.tag = "Untagged";
         // This agent is now waiting for food
         agent.gameObject.tag = "Waiting";
 
         // Update relevant worldState values for this agent
         agent.sittingDown = true;
+
+        // This agent has a new goal
+        agent.goal = new KeyValuePair<string, object>("eatFood", true);
 
         // This action is finished
         done = true;
