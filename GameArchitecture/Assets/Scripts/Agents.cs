@@ -79,7 +79,9 @@ public class Agents : MonoBehaviour
         Stack<Actions> plan = m_planner.CreatePlan(this, m_validActions, GetWorldState(), goals);
 
         // Debug
-        DisplayActions(plan);
+        //DisplayActions(plan, null);
+        //DisplayActions(plan, "Customer");
+        //DisplayActions(plan, "Waiter");
 
         if (plan != null)
         {
@@ -137,7 +139,7 @@ public class Agents : MonoBehaviour
             return FSMState.IDLE;
         }
         m_planActions.Pop();
-        
+
         // Debug
         //print(name + " performs " + currentAction.actionType);
 
@@ -151,10 +153,12 @@ public class Agents : MonoBehaviour
         m_worldState.Add(new KeyValuePair<string, object>("sittingDown", sittingDown));
         m_worldState.Add(new KeyValuePair<string, object>("isHungry", isHungry));
         m_worldState.Add(new KeyValuePair<string, object>("hasFood", (foodHeld > 0)));
-        m_worldState.Add(new KeyValuePair<string, object>("canHoldMoreFood", (foodHeld <= 2)));
+        m_worldState.Add(new KeyValuePair<string, object>("canHoldMoreFood", (foodHeld < 2)));
 
         // Debug
-        DisplaySet(m_worldState);
+        //DisplaySet(m_worldState, null);
+        //DisplaySet(m_worldState, "Customer");
+        //DisplaySet(m_worldState, "Waiter");
 
         return m_worldState;
     }
@@ -177,8 +181,10 @@ public class Agents : MonoBehaviour
             print(name + ": " + oldState + " -> " + m_state);
         }
     }
-    void DisplaySet(HashSet<KeyValuePair<string, object>> collection)
+    void DisplaySet(HashSet<KeyValuePair<string, object>> collection, string agentType)
     {
+        if (agentType != null && !name.Contains(agentType)) return;
+
         string str = "{";
         foreach (KeyValuePair<string, object> i in collection)
         {
@@ -186,38 +192,63 @@ public class Agents : MonoBehaviour
         }
         print(name + ": " + str + " }");
     }
-    void DisplayActions(Stack<Actions> collection)
+    // The following method is adapted from: https://stackoverflow.com/questions/55361628/how-do-i-print-out-a-tree-structure-in-c
+    public void DisplayTree(Node tree, string agentType)
     {
-        if (collection != null)
+        if (agentType != null && !name.Contains(agentType)) return;
+
+        string str = "";
+
+        Stack<Node> stack = new Stack<Node>();
+        Stack<int> nodeLevel = new Stack<int>();
+        stack.Push(tree);
+        nodeLevel.Push(0);
+
+        while (stack.Count > 0)
         {
-            print(name + ": {" + PrintStack(collection, "") + " }");
+            Node next = stack.Pop();
+            int curLevel = nodeLevel.Pop();
+
+            for (int i = 0; i < curLevel; i++) { str += "-"; }
+            str += next.action != null ? next.action.actionType : "Root";
+            str += "\n";
+
+            foreach (Node c in next.children)
+            {
+                nodeLevel.Push(curLevel + 1);
+                stack.Push(c);
+            }
         }
+
+        print(name + ":\n" + str);
     }
     // The following method is adapted from: https://www.geeksforgeeks.org/print-stack-elements-from-bottom-to-top/
-    static string PrintStack(Stack<Actions> s, string str)
+    void DisplayActions(Stack<Actions> collection, string agentType)
     {
-        // If stack is empty then return
-        if (s.Count == 0)
+        if (agentType != null && !name.Contains(agentType)) return;
+
+        string str = name + ": {";
+        if (collection != null)
         {
-            return str;
+            Stack<Actions> temp = new Stack<Actions>();
+            while (collection.Count != 0)
+            {
+                temp.Push(collection.Peek());
+                collection.Pop();
+            }
+
+            while (temp.Count != 0)
+            {
+                Actions t = temp.Peek();
+                str += " " + t;
+                temp.Pop();
+
+                // To restore contents of
+                // the original stack.
+                collection.Push(t);
+            }
         }
 
-        Actions x = s.Peek();
-
-        // Pop the top element of the stack
-        s.Pop();
-
-        // Recursively call the function PrintStack
-        PrintStack(s, str);
-
-        // Print the stack element starting
-        // from the bottom
-        str += " " + x.actionType;
-
-        // Push the same element onto the stack
-        // to preserve the order
-        s.Push(x);
-
-        return str;
+        print(str + " }");
     }
 }

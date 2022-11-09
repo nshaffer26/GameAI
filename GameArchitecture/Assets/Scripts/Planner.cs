@@ -48,6 +48,11 @@ public class Planner
             return null;
         }
 
+        // Debug
+        //agent.DisplayTree(root, null);
+        //agent.DisplayTree(root, "Customer");
+        //agent.DisplayTree(root, "Waiter");
+
         // Find the cheapest path to the goal and create a stack of actions (the plan)
         Node cheapest = null;
         float minRunningCost = -1;
@@ -182,7 +187,7 @@ public class Planner
     //}
 }
 
-class Node
+public class Node
 {
     public Node parent;
     public List<Node> children;

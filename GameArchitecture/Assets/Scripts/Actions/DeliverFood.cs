@@ -13,7 +13,7 @@ public class DeliverFood : Actions
 
         actionType = "DeliverFood";
 
-        cost = 3.0f;
+        cost = 1.0f;
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
@@ -21,7 +21,7 @@ public class DeliverFood : Actions
         GameObject[] customers = GameObject.FindGameObjectsWithTag("Waiting");
 
         // If there are no waiting customers, this action cannot be performed
-        if(customers.Length == 0)
+        if (customers.Length == 0)
         {
             return false;
         }
@@ -55,8 +55,15 @@ public class DeliverFood : Actions
             if (seat != null)
             {
                 agent.target = seat.m_table.gameObject;
+
+                // Adjust cost (DeliverFood takes priority if the closest table is closer than the counter)
+                float distToCounter = Vector3.Distance(agent.transform.position, agent.counter.transform.position);
+                float distToTable = Vector3.Distance(agent.transform.position, agent.target.transform.position);
+
+                cost = distToTable <= distToCounter ? -1.0f : 1.0f;
             }
         }
+
 
         return agent.target != null;
     }

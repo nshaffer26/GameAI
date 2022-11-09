@@ -10,8 +10,9 @@ public class Waiter : Agents
         m_validActions.Add(new DeliverFood());
 
         goals = new HashSet<KeyValuePair<string, object>>();
+        goals.Add(new KeyValuePair<string, object>("collectFood", true));
         goals.Add(new KeyValuePair<string, object>("serveCustomer", true));
 
-        speed = 3.0f;
+        speed = 2.0f;
     }
 }

@@ -9,6 +9,7 @@ public class CollectFood : Actions
     {
         m_preconditions.Add(new KeyValuePair<string, object>("canHoldMoreFood", true));
         m_effects.Add(new KeyValuePair<string, object>("hasFood", true));
+        m_effects.Add(new KeyValuePair<string, object>("collectFood", true));
 
         actionType = "CollectFood";
 
