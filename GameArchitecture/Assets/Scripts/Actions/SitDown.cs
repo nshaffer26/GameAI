@@ -54,9 +54,6 @@ public class SitDown : Actions
         // Update relevant worldState values for this agent
         agent.sittingDown = true;
 
-        // This agent has a new goal
-        agent.goal = new KeyValuePair<string, object>("eatFood", true);
-
         // This action is finished
         done = true;
     }

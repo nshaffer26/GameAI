@@ -6,14 +6,12 @@ public class Waiter : Agents
 {
     public Waiter()
     {
-        goal = new KeyValuePair<string, object>("serveCustomer", true);
-
-        // TODO: Keep different speed?
-        speed = 2.0f;
-
         m_validActions.Add(new CollectFood());
         m_validActions.Add(new DeliverFood());
 
-        agentType = "Waiter";
+        goals = new HashSet<KeyValuePair<string, object>>();
+        goals.Add(new KeyValuePair<string, object>("serveCustomer", true));
+
+        speed = 3.0f;
     }
 }

@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Seat : MonoBehaviour
 {
-    public Table m_table;
+    public SpawnFood m_table;
 
     void Start()
     {
-        m_table = this.GetComponentInParent<Table>();
+        m_table = this.GetComponentInParent<SpawnFood>();
     }
 }

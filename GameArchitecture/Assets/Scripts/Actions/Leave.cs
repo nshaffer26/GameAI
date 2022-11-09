@@ -31,5 +31,6 @@ public class Leave : Actions
 
         // This action is finished
         done = true;
+        agent.Despawn();
     }
 }

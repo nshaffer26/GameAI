@@ -7,19 +7,21 @@ public class CollectFood : Actions
 {
     public CollectFood()
     {
-        m_preconditions.Add(new KeyValuePair<string, object>("hasFood", false));
+        m_preconditions.Add(new KeyValuePair<string, object>("canHoldMoreFood", true));
         m_effects.Add(new KeyValuePair<string, object>("hasFood", true));
 
         actionType = "CollectFood";
+
+        cost = 1.0f;
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
     {
         // Is there food at the counter?
-        if(agent.counter.GetComponent<Counter>().m_foodAvailable > 0)
+        if (agent.counter.GetComponent<SpawnFood>().m_foodAvailable > 0)
         {
             // Yes, the counter is this agent's new target
-            agent.target = agent.counter;
+            agent.target = agent.counter.gameObject;
         }
 
         return agent.target != null;
@@ -28,7 +30,8 @@ public class CollectFood : Actions
     public override void Perform(Agents agent)
     {
         // Take some food from the counter
-        agent.target.GetComponent<Counter>().m_foodAvailable--;
+        agent.counter.m_foodAvailable--;
+        agent.counter.UpdateFoodDisplay();
 
         // Update relevant worldState values for this agent
         agent.foodHeld++;

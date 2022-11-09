@@ -9,18 +9,6 @@ public class Planner
 {
     List<Node> m_planNodes;
 
-
-
-
-
-
-    // TODO: must handle multiple goals, i.e., a customer should have two goals: sitDown, eatFood
-
-
-
-
-
-
     /// <summary>
     /// Create a plan for a specified agent given that agent's available actions, the world state, and the goal state.
     /// Only handles one goal at time.
@@ -28,9 +16,9 @@ public class Planner
     /// <param name="agent">The agent to plan for</param>
     /// <param name="validActions">All actions this agent can perform</param>
     /// <param name="worldState">The current world state</param>
-    /// <param name="goal">The goal to be satisfied by this plan.</param>
+    /// <param name="goals">This agent's goals.</param>
     /// <returns>The most optimal set of actions for this agent to accomplish their goal</returns>
-    public Stack<Actions> CreatePlan(Agents agent, HashSet<Actions> validActions, HashSet<KeyValuePair<string, object>> worldState, KeyValuePair<string, object> goal)
+    public Stack<Actions> CreatePlan(Agents agent, HashSet<Actions> validActions, HashSet<KeyValuePair<string, object>> worldState, HashSet<KeyValuePair<string, object>> goals)
     {
         m_planNodes = new List<Node>();
 
@@ -50,10 +38,10 @@ public class Planner
             }
         }
 
-        Node root = new Node(null, new List<Node>(), 0, null, 0, worldState);
+        Node root = new Node(null, new List<Node>(), null, 0, worldState);
         m_planNodes.Add(root);
 
-        bool planFound = BuildGraph(root, planActions, goal);
+        bool planFound = BuildGraph(root, planActions, goals);
         if(!planFound)
         {
             // This agent's goal is currently not attainable
@@ -98,7 +86,7 @@ public class Planner
         return plan;
     }
 
-    private bool BuildGraph(Node parent, HashSet<Actions> planActions, KeyValuePair<string, object> goal)
+    private bool BuildGraph(Node parent, HashSet<Actions> planActions, HashSet<KeyValuePair<string, object>> goals)
     {
         bool foundGoal = false;
 
@@ -108,26 +96,28 @@ public class Planner
             {
                 // Apply this action's effects to the current state and apply it to a new node
                 HashSet<KeyValuePair<string, object>> currentState = UpdateState(parent.currentState, action.m_effects);
-                Node child = new Node(parent, new List<Node>(), parent.distFromRoot + 1, action, parent.runningCost + action.cost, currentState);
+                Node child = new Node(parent, new List<Node>(), action, parent.runningCost + action.cost, currentState);
                 
                 // Add this child to the current node's children
                 parent.children.Add(child);
                 m_planNodes.Add(child);
 
-                // Did we find the goal?
-                if(currentState.Contains(goal))
+                foreach(KeyValuePair<string, object> goal in goals)
                 {
-                    // Goal found
-                    foundGoal = true;
+                    if(currentState.Contains(goal))
+                    {
+                        foundGoal = true;
+                    }
                 }
-                else
+
+                // If goal not found, keep building
+                if (!foundGoal)
                 {
-                    // Goal not found, keep building
                     HashSet<Actions> actionSubset = new HashSet<Actions>();
                     actionSubset.UnionWith(planActions);
                     actionSubset.Remove(action);
 
-                    foundGoal = BuildGraph(child, actionSubset, goal);
+                    foundGoal = BuildGraph(child, actionSubset, goals);
                 }
             }
         }
@@ -196,7 +186,6 @@ class Node
 {
     public Node parent;
     public List<Node> children;
-    public int distFromRoot;
     // The action this node represents
     public Actions action;
     // How much it has costed to get to this node from the start node
@@ -205,11 +194,10 @@ class Node
     // The state of the world as of this node
     public HashSet<KeyValuePair<string, object>> currentState;
 
-    public Node(Node parent, List<Node> children, int distFromRoot, Actions action, float runningCost, HashSet<KeyValuePair<string, object>> currentState)
+    public Node(Node parent, List<Node> children, Actions action, float runningCost, HashSet<KeyValuePair<string, object>> currentState)
     {
         this.parent = parent;
         this.children = children;
-        this.distFromRoot = distFromRoot;
         this.action = action;
         this.runningCost = runningCost;
         this.currentState = currentState;

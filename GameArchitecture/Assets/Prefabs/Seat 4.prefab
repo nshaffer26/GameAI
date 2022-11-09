@@ -142,7 +142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7979a9cdbbfec44ba1bd36d8cc64267, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_empty: 1
+  m_table: {fileID: 0}
 --- !u!1 &1713486288442508152
 GameObject:
   m_ObjectHideFlags: 0
@@ -253,7 +253,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7979a9cdbbfec44ba1bd36d8cc64267, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_empty: 1
+  m_table: {fileID: 0}
 --- !u!1 &7767674838399073085
 GameObject:
   m_ObjectHideFlags: 0
@@ -364,7 +364,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7979a9cdbbfec44ba1bd36d8cc64267, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_empty: 1
+  m_table: {fileID: 0}
 --- !u!1 &8225033906060201607
 GameObject:
   m_ObjectHideFlags: 0
@@ -377,7 +377,7 @@ GameObject:
   - component: {fileID: 7592660437093421290}
   - component: {fileID: 7891279949672823058}
   - component: {fileID: 8235137048217014752}
-  - component: {fileID: 6577553263306953212}
+  - component: {fileID: 7080325431309419391}
   m_Layer: 0
   m_Name: Table
   m_TagString: Untagged
@@ -467,7 +467,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6577553263306953212
+--- !u!114 &7080325431309419391
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -476,10 +476,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 8225033906060201607}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 098db530b7e1c644eaf13b37fc1a3ff9, type: 3}
+  m_Script: {fileID: 11500000, guid: f3471bf3c29687243825c21b9efd5df7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_foodAvailable: 0
+  m_food: {fileID: 1781625590585202196, guid: e8a194fbce80d6940b331e40a038ec71, type: 3}
+  m_counter: 0
 --- !u!1 &8502081157628322752
 GameObject:
   m_ObjectHideFlags: 0
@@ -590,4 +592,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7979a9cdbbfec44ba1bd36d8cc64267, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_empty: 1
+  m_table: {fileID: 0}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum FSMState { IDLE, GOTO, ACTION }
@@ -8,7 +9,7 @@ public enum FSMState { IDLE, GOTO, ACTION }
 public class Agents : MonoBehaviour
 {
     // The current state of this agent
-    FSMState state;
+    [SerializeField] FSMState m_state;
 
     // The starting state of the world
     HashSet<KeyValuePair<string, object>> m_worldState;
@@ -19,12 +20,12 @@ public class Agents : MonoBehaviour
     public int foodHeld = 0;
 
     // The goal state, will only ever be one for now
-    public KeyValuePair<string, object> goal;
+    public HashSet<KeyValuePair<string, object>> goals;
 
     public Seat seat;
 
     // This agent's speed
-    public float speed = 1.0f;
+    protected float speed = 1.0f;
 
     // All valid actions
     public HashSet<Actions> m_validActions = new HashSet<Actions>();
@@ -34,12 +35,10 @@ public class Agents : MonoBehaviour
     Planner m_planner;
 
     // This agent's target (either what they should be acting on or moving towards)
-    public GameObject target;
+    public GameObject target = null;
 
-    public GameObject counter;
+    public SpawnFood counter;
     public GameObject exit;
-
-    public string agentType;
 
     // Start is called before the first frame update
     void Start()
@@ -48,37 +47,38 @@ public class Agents : MonoBehaviour
 
         m_planner = new Planner();
 
-        counter = GameObject.Find("Counter");
+        counter = GameObject.Find("Counter").GetComponent<SpawnFood>();
         exit = GameObject.Find("Exit");
     }
 
     // Update is called once per frame
     void Update()
     {
-        FSMState oldState = state;
-        switch(state)
+        FSMState oldState = m_state;
+        switch (m_state)
         {
             case FSMState.IDLE:
-                state = IdleState();
+                m_state = IdleState();
                 break;
 
             case FSMState.GOTO:
-                state = GoToState();
+                m_state = GoToState();
                 break;
 
             case FSMState.ACTION:
-                state = ActionState();
+                m_state = ActionState();
                 break;
         }
-        if(state != oldState)
-        {
-            print(agentType + ": " + oldState + " -> " + state);
-        }
+
+        // Debug
+        //DisplayStateChange(m_state, oldState);
     }
 
     FSMState IdleState()
     {
-        Stack<Actions> plan = m_planner.CreatePlan(this, m_validActions, GetWorldState(), goal);
+        Stack<Actions> plan = m_planner.CreatePlan(this, m_validActions, GetWorldState(), goals);
+
+        // Debug
         DisplayActions(plan);
 
         if (plan != null)
@@ -95,9 +95,14 @@ public class Agents : MonoBehaviour
     }
     FSMState GoToState()
     {
+        if (target == null)
+        {
+            return FSMState.IDLE;
+        }
+
         transform.position = Vector3.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
-        print("Target: " + target.name);
-        if(transform.position == target.transform.position)
+
+        if (transform.position == target.transform.position)
         {
             return FSMState.ACTION;
         }
@@ -106,7 +111,7 @@ public class Agents : MonoBehaviour
     }
     FSMState ActionState()
     {
-        if(m_planActions.Count == 0)
+        if (m_planActions.Count == 0)
         {
             // No actions left to perform
             return FSMState.IDLE;
@@ -114,7 +119,10 @@ public class Agents : MonoBehaviour
 
         Actions currentAction = m_planActions.Peek();
         currentAction.CheckProceduralPreconditions(this);
-        print(currentAction.actionType);
+        if (target == null)
+        {
+            return FSMState.IDLE;
+        }
 
         // Does the current action require proximity?
         if (currentAction.requiresProximity && transform.position != target.transform.position)
@@ -123,7 +131,15 @@ public class Agents : MonoBehaviour
         }
 
         currentAction.Perform(this);
+        if (!currentAction.done)
+        {
+            // The action could not be performed, rerturn to idle state and plan again
+            return FSMState.IDLE;
+        }
         m_planActions.Pop();
+        
+        // Debug
+        //print(name + " performs " + currentAction.actionType);
 
         return FSMState.ACTION;
     }
@@ -135,13 +151,31 @@ public class Agents : MonoBehaviour
         m_worldState.Add(new KeyValuePair<string, object>("sittingDown", sittingDown));
         m_worldState.Add(new KeyValuePair<string, object>("isHungry", isHungry));
         m_worldState.Add(new KeyValuePair<string, object>("hasFood", (foodHeld > 0)));
+        m_worldState.Add(new KeyValuePair<string, object>("canHoldMoreFood", (foodHeld <= 2)));
+
+        // Debug
         DisplaySet(m_worldState);
+
         return m_worldState;
     }
 
-    public void TEST(int toPrint)
+    public void Despawn()
+    {
+        Destroy(gameObject);
+    }
+
+
+    // Debug functions
+    public void PrintTest(string toPrint)
     {
         print(toPrint);
+    }
+    void DisplayStateChange(FSMState newState, FSMState oldState)
+    {
+        if (newState != oldState)
+        {
+            print(name + ": " + oldState + " -> " + m_state);
+        }
     }
     void DisplaySet(HashSet<KeyValuePair<string, object>> collection)
     {
@@ -150,15 +184,16 @@ public class Agents : MonoBehaviour
         {
             str += " (" + i.Key + ", " + i.Value + ")";
         }
-        print(str + " }");
+        print(name + ": " + str + " }");
     }
     void DisplayActions(Stack<Actions> collection)
     {
         if (collection != null)
         {
-            print(agentType + ": {" + PrintStack(collection, "") + " }");
+            print(name + ": {" + PrintStack(collection, "") + " }");
         }
     }
+    // The following method is adapted from: https://www.geeksforgeeks.org/print-stack-elements-from-bottom-to-top/
     static string PrintStack(Stack<Actions> s, string str)
     {
         // If stack is empty then return
