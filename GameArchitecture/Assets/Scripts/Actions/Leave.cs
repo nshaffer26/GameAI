@@ -10,13 +10,13 @@ public class Leave : Actions
         m_effects.Add(new KeyValuePair<string, object>("sittingDown", false));
         m_effects.Add(new KeyValuePair<string, object>("eatFood", true));
 
-        actionType = "Leave";
+        m_actionType = "Leave";
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
     {
         // Find the exit
-        agent.target = agent.exit;
+        agent.m_target = agent.m_exit;
 
         return true;
     }
@@ -24,13 +24,13 @@ public class Leave : Actions
     public override void Perform(Agents agent)
     {
         // This seat is empty again
-        agent.seat.gameObject.tag = "EmptyChair";
+        agent.m_seat.gameObject.tag = "EmptyChair";
 
         // Update relevant worldState values for this agent
-        agent.sittingDown = false;
+        agent.m_sittingDown = false;
 
         // This action is finished
-        done = true;
+        m_done = true;
         agent.Despawn();
     }
 }

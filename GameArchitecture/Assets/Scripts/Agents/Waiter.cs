@@ -6,13 +6,15 @@ public class Waiter : Agents
 {
     public Waiter()
     {
+        // Add valid actions for this agent type
         m_validActions.Add(new CollectFood());
         m_validActions.Add(new DeliverFood());
 
-        goals = new HashSet<KeyValuePair<string, object>>();
-        goals.Add(new KeyValuePair<string, object>("collectFood", true));
-        goals.Add(new KeyValuePair<string, object>("serveCustomer", true));
+        // Add goals for this agent type
+        m_goals = new HashSet<KeyValuePair<string, object>>();
+        m_goals.Add(new KeyValuePair<string, object>("collectFood", true));
+        m_goals.Add(new KeyValuePair<string, object>("serveCustomer", true));
 
-        speed = 2.0f;
+        m_speed = 2.0f;
     }
 }

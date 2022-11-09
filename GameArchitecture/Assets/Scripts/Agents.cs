@@ -6,6 +6,9 @@ using UnityEngine;
 
 public enum FSMState { IDLE, GOTO, ACTION }
 
+/// <summary>
+/// The parent class for all agents.
+/// </summary>
 public class Agents : MonoBehaviour
 {
     // The current state of this agent
@@ -13,32 +16,32 @@ public class Agents : MonoBehaviour
 
     // The starting state of the world
     HashSet<KeyValuePair<string, object>> m_worldState;
+
     // Customer relevant states
-    public bool sittingDown = false;
-    public bool isHungry = true;
+    public bool m_sittingDown = false;
+    public bool m_isHungry = true;
     // Waiter relevant states
-    public int foodHeld = 0;
+    public int m_foodHeld = 0;
 
-    // The goal state, will only ever be one for now
-    public HashSet<KeyValuePair<string, object>> goals;
-
-    public Seat seat;
+    // This agent's goal states
+    public HashSet<KeyValuePair<string, object>> m_goals;
 
     // This agent's speed
-    protected float speed = 1.0f;
+    protected float m_speed = 1.0f;
 
-    // All valid actions
+    // All valid actions for this agent
     public HashSet<Actions> m_validActions = new HashSet<Actions>();
-    // The current plan, i.e., a set of valid actions to follow
+    // The current plan, i.e., a set of valid actions to follow that satisfy all pre-conditions
     public Stack<Actions> m_planActions;
 
     Planner m_planner;
 
     // This agent's target (either what they should be acting on or moving towards)
-    public GameObject target = null;
+    public GameObject m_target = null;
 
-    public SpawnFood counter;
-    public GameObject exit;
+    public Seat m_seat;
+    public SpawnFood m_counter;
+    public GameObject m_exit;
 
     // Start is called before the first frame update
     void Start()
@@ -47,14 +50,16 @@ public class Agents : MonoBehaviour
 
         m_planner = new Planner();
 
-        counter = GameObject.Find("Counter").GetComponent<SpawnFood>();
-        exit = GameObject.Find("Exit");
+        m_counter = GameObject.Find("Counter").GetComponent<SpawnFood>();
+        m_exit = GameObject.Find("Exit");
     }
 
     // Update is called once per frame
     void Update()
     {
-        FSMState oldState = m_state;
+        // Debug
+        //FSMState oldState = m_state;
+
         switch (m_state)
         {
             case FSMState.IDLE:
@@ -74,9 +79,14 @@ public class Agents : MonoBehaviour
         //DisplayStateChange(m_state, oldState);
     }
 
+    /// <summary>
+    /// Implement the idle state. This is where the plan is formulated.
+    /// </summary>
+    /// <returns>The <c>FSMState</c> that should be transitioned to next.</returns>
     FSMState IdleState()
     {
-        Stack<Actions> plan = m_planner.CreatePlan(this, m_validActions, GetWorldState(), goals);
+        // Create a plan
+        Stack<Actions> plan = m_planner.CreatePlan(this, m_validActions, GetWorldState(), m_goals);
 
         // Debug
         //DisplayActions(plan, null);
@@ -95,49 +105,63 @@ public class Agents : MonoBehaviour
             return FSMState.IDLE;
         }
     }
+    /// <summary>
+    /// Implement the goto state. This is where an agent moves to their target.
+    /// </summary>
+    /// <returns>The <c>FSMState</c> that should be transitioned to next.</returns>
     FSMState GoToState()
     {
-        if (target == null)
+        // If this agent does not have a target, replan
+        if (m_target == null)
         {
             return FSMState.IDLE;
         }
 
-        transform.position = Vector3.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
+        // Step towards the target
+        transform.position = Vector3.MoveTowards(transform.position, m_target.transform.position, m_speed * Time.deltaTime);
 
-        if (transform.position == target.transform.position)
+        // If this agent has reached their target, move to the action state
+        if (transform.position == m_target.transform.position)
         {
             return FSMState.ACTION;
         }
 
+        // Continue to move towards the target
         return FSMState.GOTO;
     }
+    /// <summary>
+    /// Implement the action state. This is where the agent performs the actions of their plan.
+    /// </summary>
+    /// <returns>The <c>FSMState</c> that should be transitioned to next.</returns>
     FSMState ActionState()
     {
+        // If there are no actions left to perform, replan
         if (m_planActions.Count == 0)
         {
-            // No actions left to perform
             return FSMState.IDLE;
         }
 
+        // If the current action doesn't have a target, replan
         Actions currentAction = m_planActions.Peek();
         currentAction.CheckProceduralPreconditions(this);
-        if (target == null)
+        if (m_target == null)
         {
             return FSMState.IDLE;
         }
 
-        // Does the current action require proximity?
-        if (currentAction.requiresProximity && transform.position != target.transform.position)
+        // If the current action require proximity, switch to the goto state
+        if (currentAction.m_requiresProximity && transform.position != m_target.transform.position)
         {
             return FSMState.GOTO;
         }
 
         currentAction.Perform(this);
-        if (!currentAction.done)
+        if (!currentAction.m_done)
         {
             // The action could not be performed, rerturn to idle state and plan again
             return FSMState.IDLE;
         }
+        // Move to the next action
         m_planActions.Pop();
 
         // Debug
@@ -146,14 +170,18 @@ public class Agents : MonoBehaviour
         return FSMState.ACTION;
     }
 
+    /// <summary>
+    /// Returns the current world state for this agent.
+    /// </summary>
+    /// <returns>The current world state for this agent.</returns>
     public HashSet<KeyValuePair<string, object>> GetWorldState()
     {
         m_worldState = new HashSet<KeyValuePair<string, object>>();
 
-        m_worldState.Add(new KeyValuePair<string, object>("sittingDown", sittingDown));
-        m_worldState.Add(new KeyValuePair<string, object>("isHungry", isHungry));
-        m_worldState.Add(new KeyValuePair<string, object>("hasFood", (foodHeld > 0)));
-        m_worldState.Add(new KeyValuePair<string, object>("canHoldMoreFood", (foodHeld < 2)));
+        m_worldState.Add(new KeyValuePair<string, object>("sittingDown", m_sittingDown));
+        m_worldState.Add(new KeyValuePair<string, object>("isHungry", m_isHungry));
+        m_worldState.Add(new KeyValuePair<string, object>("hasFood", (m_foodHeld > 0)));
+        m_worldState.Add(new KeyValuePair<string, object>("canHoldMoreFood", (m_foodHeld < 2)));
 
         // Debug
         //DisplaySet(m_worldState, null);
@@ -163,13 +191,16 @@ public class Agents : MonoBehaviour
         return m_worldState;
     }
 
+    /// <summary>
+    /// Destroy this agent.
+    /// </summary>
     public void Despawn()
     {
         Destroy(gameObject);
     }
 
 
-    // Debug functions
+    // Debug functions for displaying data
     public void PrintTest(string toPrint)
     {
         print(toPrint);
@@ -210,7 +241,7 @@ public class Agents : MonoBehaviour
             int curLevel = nodeLevel.Pop();
 
             for (int i = 0; i < curLevel; i++) { str += "-"; }
-            str += next.action != null ? next.action.actionType : "Root";
+            str += next.action != null ? next.action.m_actionType : "Root";
             str += "\n";
 
             foreach (Node c in next.children)

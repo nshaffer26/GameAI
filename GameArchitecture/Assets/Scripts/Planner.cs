@@ -5,8 +5,12 @@ using Unity.VisualScripting;
 using UnityEditor.VersionControl;
 using UnityEngine;
 
+/// <summary>
+/// This class is responsible for creating a plan.
+/// </summary>
 public class Planner
 {
+    // All nodes in the plan
     List<Node> m_planNodes;
 
     /// <summary>
@@ -25,7 +29,7 @@ public class Planner
         // The available actions are no longer completed
         foreach (Actions action in validActions)
         {
-            action.done = false;
+            action.m_done = false;
         }
 
         // Check pre-conditions to get all actions that can currently be completed
@@ -38,9 +42,11 @@ public class Planner
             }
         }
 
+        // Build the root node and add it to the list of nodes in the plan
         Node root = new Node(null, new List<Node>(), null, 0, worldState);
         m_planNodes.Add(root);
 
+        // Build out the plan possibilities
         bool planFound = BuildGraph(root, planActions, goals);
         if(!planFound)
         {
@@ -91,6 +97,13 @@ public class Planner
         return plan;
     }
 
+    /// <summary>
+    /// Builds the graph of all possible plans given a root node, a set of possible actions, and a set of goals.
+    /// </summary>
+    /// <param name="parent">The root node of this branch.</param>
+    /// <param name="planActions">The actions that are valid for this plan.</param>
+    /// <param name="goals">This agent's goals.</param>
+    /// <returns><c>true</c> if a goal was found, <c>false</c> otherwise.</returns>
     private bool BuildGraph(Node parent, HashSet<Actions> planActions, HashSet<KeyValuePair<string, object>> goals)
     {
         bool foundGoal = false;
@@ -101,12 +114,13 @@ public class Planner
             {
                 // Apply this action's effects to the current state and apply it to a new node
                 HashSet<KeyValuePair<string, object>> currentState = UpdateState(parent.currentState, action.m_effects);
-                Node child = new Node(parent, new List<Node>(), action, parent.runningCost + action.cost, currentState);
+                Node child = new Node(parent, new List<Node>(), action, parent.runningCost + action.m_cost, currentState);
                 
                 // Add this child to the current node's children
                 parent.children.Add(child);
                 m_planNodes.Add(child);
 
+                // Check if the applied action satisfies a goal
                 foreach(KeyValuePair<string, object> goal in goals)
                 {
                     if(currentState.Contains(goal))
@@ -130,11 +144,19 @@ public class Planner
         return foundGoal;
     }
     
+    /// <summary>
+    /// Update the current state with a set of changes.
+    /// </summary>
+    /// <param name="current">The current world state.</param>
+    /// <param name="changes">The new state values to add to/modify the current state.</param>
+    /// <returns>The new world state after the changes are applied.</returns>
     private HashSet<KeyValuePair<string, object>> UpdateState(HashSet<KeyValuePair<string, object>> current, HashSet<KeyValuePair<string, object>> changes)
     {
+        // Create a new world state and add the changes
         HashSet<KeyValuePair<string, object>> newState = new HashSet<KeyValuePair<string, object>>();
         newState.UnionWith(changes);
 
+        // Add only those states that haven't already been added to the new world state
         foreach (KeyValuePair<string, object> state in current)
         {
             bool alreadyInCurrentState = false;
@@ -157,40 +179,16 @@ public class Planner
 
         return newState;
     }
-
-    //private void Start()
-    //{
-    //    HashSet<KeyValuePair<string, object>> current = new HashSet<KeyValuePair<string, object>>();
-    //    HashSet<KeyValuePair<string, object>> changes = new HashSet<KeyValuePair<string, object>>();
-
-    //    current.Add(new KeyValuePair<string, object>("test1", true));
-    //    current.Add(new KeyValuePair<string, object>("test2", false));
-    //    current.Add(new KeyValuePair<string, object>("test3", true));
-    //    current.Add(new KeyValuePair<string, object>("test4", true));
-    //    current.Add(new KeyValuePair<string, object>("test5", false));
-
-    //    changes.Add(new KeyValuePair<string, object>("test2", true));
-    //    changes.Add(new KeyValuePair<string, object>("test3", false));
-    //    changes.Add(new KeyValuePair<string, object>("test4", true));
-    //    changes.Add(new KeyValuePair<string, object>("test6", false));
-
-    //    DisplaySet(UpdateState(current, changes));
-    //}
-    //void DisplaySet(HashSet<KeyValuePair<string, object>> collection)
-    //{
-    //    string str = "{";
-    //    foreach (KeyValuePair<string, object> i in collection)
-    //    {
-    //        str += " (" + i.Key + ", " + i.Value + ")";
-    //    }
-    //    print(str + "}");
-    //}
 }
 
+/// <summary>
+/// A node in a tree of actions
+/// </summary>
 public class Node
 {
     public Node parent;
     public List<Node> children;
+
     // The action this node represents
     public Actions action;
     // How much it has costed to get to this node from the start node

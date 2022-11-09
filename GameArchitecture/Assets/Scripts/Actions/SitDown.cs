@@ -10,7 +10,7 @@ public class SitDown : Actions
         m_effects.Add(new KeyValuePair<string, object>("sittingDown", true));
         m_effects.Add(new KeyValuePair<string, object>("sitDown", true));
 
-        actionType = "SitDown";
+        m_actionType = "SitDown";
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
@@ -37,24 +37,24 @@ public class SitDown : Actions
                 }
             }
         }
-        agent.target = closest;
+        agent.m_target = closest;
 
-        return agent.target != null;
+        return agent.m_target != null;
     }
 
     public override void Perform(Agents agent)
     {
         // Record where this agent is sitting
-        agent.seat = agent.target.GetComponent<Seat>();
+        agent.m_seat = agent.m_target.GetComponent<Seat>();
         // This seat should no longer have the "EmptyChair" tag
-        agent.seat.gameObject.tag = "Untagged";
+        agent.m_seat.gameObject.tag = "Untagged";
         // This agent is now waiting for food
         agent.gameObject.tag = "Waiting";
 
         // Update relevant worldState values for this agent
-        agent.sittingDown = true;
+        agent.m_sittingDown = true;
 
         // This action is finished
-        done = true;
+        m_done = true;
     }
 }

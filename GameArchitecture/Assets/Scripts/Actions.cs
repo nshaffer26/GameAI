@@ -2,25 +2,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// The parent class for all actions.
+/// </summary>
 public abstract class Actions
 {
     public HashSet<KeyValuePair<string, object>> m_preconditions;
     public HashSet<KeyValuePair<string, object>> m_effects;
 
-    public float cost;
-    public bool requiresProximity = true;
+    public float m_cost;
+    public bool m_requiresProximity = true;
 
     // Has the action been performed
-    public bool done = false;
+    public bool m_done = false;
 
-    public string actionType;
+    // The name of this action
+    public string m_actionType;
 
     public Actions()
     {
         m_preconditions = new HashSet<KeyValuePair<string, object>>();
         m_effects = new HashSet<KeyValuePair<string, object>>();
 
-        cost = 1f;
+        m_cost = 1f;
     }
 
     /// <summary>

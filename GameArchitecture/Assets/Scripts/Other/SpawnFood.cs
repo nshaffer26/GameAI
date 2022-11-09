@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// This class is responsible for spawning food over time at the counter and updating the food being displayed at tables.
+/// </summary>
 public class SpawnFood : MonoBehaviour
 {
     public int m_foodAvailable;
@@ -32,6 +35,7 @@ public class SpawnFood : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Continually spawn food on the counter after a delay
         if (m_counter && m_foodAvailable < 5)
         {
             if (m_time >= m_delay)
@@ -46,6 +50,9 @@ public class SpawnFood : MonoBehaviour
         m_time += Time.deltaTime;
     }
 
+    /// <summary>
+    /// Spawn a food object at this object's position + an offset assigns its parent as this object.
+    /// </summary>
     void Spawn()
     {
         // Apply the offset, add additional height to bring the object above the table/counter
@@ -58,6 +65,9 @@ public class SpawnFood : MonoBehaviour
         m_foodAvailable++;
     }
 
+    /// <summary>
+    /// Updates the spawned food objects to reflect the amount of food at this object.
+    /// </summary>
     public void UpdateFoodDisplay()
     {
         int newFoodCount = m_foodAvailable;

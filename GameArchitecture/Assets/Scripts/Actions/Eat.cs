@@ -6,18 +6,18 @@ public class Eat : Actions
 {
     public Eat()
     {
-        requiresProximity = false;
+        m_requiresProximity = false;
 
         m_preconditions.Add(new KeyValuePair<string, object>("isHungry", true));
         m_effects.Add(new KeyValuePair<string, object>("isHungry", false));
 
-        actionType = "Eat";
+        m_actionType = "Eat";
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
     {
         // Is there food at the table?
-        if(agent.seat != null && agent.seat.m_table.m_foodAvailable > 0)
+        if(agent.m_seat != null && agent.m_seat.m_table.m_foodAvailable > 0)
         {
             return true;
         }
@@ -29,13 +29,13 @@ public class Eat : Actions
         // This agent is no longer waiting for food
         agent.gameObject.tag = "Untagged";
 
-        SpawnFood table = agent.seat.m_table;
+        SpawnFood table = agent.m_seat.m_table;
 
         // If there is no food to eat, replan
         if(table.m_foodAvailable <= 0)
         {
             agent.gameObject.tag = "Waiting";
-            done = false;
+            m_done = false;
             return;
         }
 
@@ -44,9 +44,9 @@ public class Eat : Actions
         table.UpdateFoodDisplay();
 
         // Update relevant worldState values for this agent
-        agent.isHungry = false;
+        agent.m_isHungry = false;
 
         // This action is finished
-        done = true;
+        m_done = true;
     }
 }

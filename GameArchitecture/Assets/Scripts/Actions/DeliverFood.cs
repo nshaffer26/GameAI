@@ -11,9 +11,9 @@ public class DeliverFood : Actions
         m_effects.Add(new KeyValuePair<string, object>("canHoldMoreFood", true));
         m_effects.Add(new KeyValuePair<string, object>("serveCustomer", true));
 
-        actionType = "DeliverFood";
+        m_cost = 1.0f;
 
-        cost = 1.0f;
+        m_actionType = "DeliverFood";
     }
 
     public override bool CheckProceduralPreconditions(Agents agent)
@@ -51,34 +51,34 @@ public class DeliverFood : Actions
         Seat seat;
         if (closest != null)
         {
-            seat = closest.GetComponent<Agents>().seat;
+            seat = closest.GetComponent<Agents>().m_seat;
             if (seat != null)
             {
-                agent.target = seat.m_table.gameObject;
+                agent.m_target = seat.m_table.gameObject;
 
                 // Adjust cost (DeliverFood takes priority if the closest table is closer than the counter)
-                float distToCounter = Vector3.Distance(agent.transform.position, agent.counter.transform.position);
-                float distToTable = Vector3.Distance(agent.transform.position, agent.target.transform.position);
+                float distToCounter = Vector3.Distance(agent.transform.position, agent.m_counter.transform.position);
+                float distToTable = Vector3.Distance(agent.transform.position, agent.m_target.transform.position);
 
-                cost = distToTable <= distToCounter ? -1.0f : 1.0f;
+                m_cost = distToTable <= distToCounter ? -1.0f : 1.0f;
             }
         }
 
 
-        return agent.target != null;
+        return agent.m_target != null;
     }
 
     public override void Perform(Agents agent)
     {
         // Give some food to the table
-        SpawnFood table = agent.target.GetComponent<SpawnFood>();
+        SpawnFood table = agent.m_target.GetComponent<SpawnFood>();
         table.m_foodAvailable++;
         table.UpdateFoodDisplay();
 
         // Update relevant worldState values for this agent
-        agent.foodHeld--;
+        agent.m_foodHeld--;
 
         // This action is finished
-        done = true;
+        m_done = true;
     }
 }

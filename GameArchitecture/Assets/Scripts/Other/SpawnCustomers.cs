@@ -2,6 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// This class is responsible for spawning customers over time.
+/// </summary>
 public class SpawnCustomers : MonoBehaviour
 {
     // The customer prefab
@@ -22,6 +25,7 @@ public class SpawnCustomers : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // Spawn a new customer after a delay
         if (m_time >= m_delay)
         {
             SpawnCustomer();
@@ -33,6 +37,9 @@ public class SpawnCustomers : MonoBehaviour
         m_time += Time.deltaTime;
     }
 
+    /// <summary>
+    /// Spawns a customer at this object's position assigns its parent as this object.
+    /// </summary>
     void SpawnCustomer()
     {
         Instantiate(m_customer, transform);
