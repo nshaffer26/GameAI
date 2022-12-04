@@ -127,6 +127,10 @@ public class LSystemController : MonoBehaviour
         // S -> S
         rule = new byte[] { 8 };
         rules8.Add(rule);
+        // This rule should happen most of the time
+        rules8.Add(rule);
+        rules8.Add(rule);
+        rules8.Add(rule);
 
         ruleHash.Add((byte)8, rules8);
 
@@ -142,6 +146,10 @@ public class LSystemController : MonoBehaviour
         rules9.Add(rule);
         // E -> E
         rule = new byte[] { 9 };
+        rules9.Add(rule);
+        // This rule should happen most of the time
+        rules9.Add(rule);
+        rules9.Add(rule);
         rules9.Add(rule);
 
         ruleHash.Add((byte)9, rules9);
@@ -209,10 +217,20 @@ public class LSystemController : MonoBehaviour
 
             if (!verticesAdded)
             {
-                // A rule could not be found, replace with a terminating character
-                chosenRule = new byte[1] { 0 };
-                addVerticies(new List<byte>(chosenRule));
-                // TODO: This causes an occasional issue where the end cannot spawn, i.e., at the end of a four way branch
+                if (input[0] == 9)
+                {
+                    // This is an exit and it cannot be skipped
+                    // Choose a random vertex that isn't the start and try to add the exit there
+                    position = vertices[UnityEngine.Random.Range(2, vertices.Count - 1)].pos;
+                    chosenRule = new byte[1] { 9 };
+                    getRule(chosenRule);
+                }
+                else
+                {
+                    // A rule could not be found, replace with a terminating character
+                    chosenRule = new byte[1] { 0 };
+                    addVerticies(new List<byte>(chosenRule));
+                }
             }
         }
         else
@@ -287,7 +305,7 @@ public class LSystemController : MonoBehaviour
         Stack<float> anglesTemp = new Stack<float>(angles);
 
         float posx = positionTemp.x;
-        float posy = positionTemp.y;
+        float posz = positionTemp.z;
 
         // location and rotation to draw towards
         Vector3 newPosition;
@@ -312,16 +330,16 @@ public class LSystemController : MonoBehaviour
                     if (buff == 1) color = Color.green;
 
                     // draw a line 
-                    posy += initial_length;
-                    rotated = rotate(positionTemp, new Vector3(positionTemp.x, posy, 0), angleTemp);
-                    newPosition = new Vector3(rotated.x, rotated.y, 0);
+                    posz += initial_length;
+                    rotated = rotate(positionTemp, new Vector3(positionTemp.x, 0, posz), angleTemp);
+                    newPosition = new Vector3(rotated.x, 0, rotated.y);
 
                     potentialVertices.AddRange(addLineToMesh(lineMesh, positionTemp, newPosition, color));
 
                     // set up for the next draw
                     positionTemp = newPosition;
                     posx = newPosition.x;
-                    posy = newPosition.y;
+                    posz = newPosition.z;
 
                     break;
                 case 2:
@@ -336,7 +354,7 @@ public class LSystemController : MonoBehaviour
                     break;
                 case 4:
                     //[: push position and angle
-                    positionsTemp.Push(posy);
+                    positionsTemp.Push(posz);
                     positionsTemp.Push(posx);
                     float currentAngle = angleTemp;
                     anglesTemp.Push(currentAngle);
@@ -345,8 +363,8 @@ public class LSystemController : MonoBehaviour
                 case 5:
                     //]: pop position and angle
                     posx = positionsTemp.Pop();
-                    posy = positionsTemp.Pop();
-                    positionTemp = new Vector3(posx, posy, 0);
+                    posz = positionsTemp.Pop();
+                    positionTemp = new Vector3(posx, 0, posz);
                     angleTemp = anglesTemp.Pop();
 
                     break;
@@ -450,43 +468,9 @@ public class LSystemController : MonoBehaviour
     {
         Vector2 result;
         float Nx = (pointToRotate.x - pivotPoint.x);
-        float Ny = (pointToRotate.y - pivotPoint.y);
+        float Nz = (pointToRotate.z - pivotPoint.z);
         angle = -angle * Mathf.PI / 180f;
-        result = new Vector2(Mathf.Cos(angle) * Nx - Mathf.Sin(angle) * Ny + pivotPoint.x, Mathf.Sin(angle) * Nx + Mathf.Cos(angle) * Ny + pivotPoint.y);
+        result = new Vector2(Mathf.Cos(angle) * Nx - Mathf.Sin(angle) * Nz + pivotPoint.x, Mathf.Sin(angle) * Nx + Mathf.Cos(angle) * Nz + pivotPoint.z);
         return result;
-    }
-
-
-    // Draw a circle with the given parameters
-    // Should probably use different stuff than the default
-    void addCircleToMesh(Mesh mesh, float radiusX, float radiusY, Vector3 center, Color color)
-    {
-        int numberOfPoints = vertices.Count;
-        float x;
-        float y;
-        float z = 0f;
-        int segments = 15;
-        float angle = (360f / segments);
-
-        for (int i = 0; i < (segments + 1); i++)
-        {
-
-            x = Mathf.Sin(Mathf.Deg2Rad * angle) * radiusX + center.x;
-            y = Mathf.Cos(Mathf.Deg2Rad * angle) * radiusY + center.y;
-
-            vertices.Add(new vertexInfo(new Vector3(x, y, 0), color));
-            indices.Add(numberOfPoints + i);
-            angle += (360f / segments);
-        }
-    }
-
-    void ResetBranch(Vector3 positionTemp, float angleTemp, Stack<float> positionsTemp, Stack<float> anglesTemp)
-    {
-        //vertices = new List<vertexInfo>(verticesTemp);
-        //indices = new List<int>(indicesTemp);
-        position = positionTemp;
-        angle = angleTemp;
-        positions = new Stack<float>(positionsTemp);
-        angles = new Stack<float>(anglesTemp);
     }
 }
