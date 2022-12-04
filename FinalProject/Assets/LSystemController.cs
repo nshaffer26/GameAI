@@ -10,13 +10,13 @@ public class LSystemController : MonoBehaviour
     // for defining the language and rules
     Hashtable ruleHash = new Hashtable(100);
 
-    public float initial_length = 2;
+    float initial_length = 6.0f;
     public float initial_radius = 1.0f;
     List<byte> start;
     List<byte> lang;
     GameObject contents;
     float angleToUse = 90f;
-    int iterations = 4;
+    int iterations = 10;
 
     // current location and angle
     Vector3 position = new Vector3(0, 0, 0);
@@ -44,11 +44,19 @@ public class LSystemController : MonoBehaviour
     public Material lineMaterial;
     MeshFilter filter;
 
+    RoomManager roomManager;
+
+    // A dictionary of all individual vertices and their connections
+    Dictionary<Vector3, List<Vector3>> connections = new Dictionary<Vector3, List<Vector3>>();
+    Vector3 end;
+
     void Start()
     {
         // DEBUG
         //Random.InitState(42);
         //
+
+        roomManager = GameObject.Find("RoomManager").GetComponent<RoomManager>();
 
         // for timing start/finish of the rule generation and display
         // can be commented out
@@ -79,6 +87,9 @@ public class LSystemController : MonoBehaviour
         List<byte[]> rules0 = new List<byte[]>();
         // X -> F
         rule = new byte[] { 1 };
+        rules0.Add(rule);
+        // X -> FF
+        rule = new byte[] { 1, 1 };
         rules0.Add(rule);
         // X -> F-F
         rule = new byte[] { 1, 3, 1 };
@@ -125,9 +136,13 @@ public class LSystemController : MonoBehaviour
         rule = new byte[] { 2, 2, 2, 8 };
         rules8.Add(rule);
         // S -> S
+        // This rule should happen most of the time
         rule = new byte[] { 8 };
         rules8.Add(rule);
-        // This rule should happen most of the time
+        rules8.Add(rule);
+        rules8.Add(rule);
+        rules8.Add(rule);
+        rules8.Add(rule);
         rules8.Add(rule);
         rules8.Add(rule);
         rules8.Add(rule);
@@ -145,9 +160,13 @@ public class LSystemController : MonoBehaviour
         rule = new byte[] { 2, 2, 2, 9 };
         rules9.Add(rule);
         // E -> E
+        // This rule should happen most of the time
         rule = new byte[] { 9 };
         rules9.Add(rule);
-        // This rule should happen most of the time
+        rules9.Add(rule);
+        rules9.Add(rule);
+        rules9.Add(rule);
+        rules9.Add(rule);
         rules9.Add(rule);
         rules9.Add(rule);
         rules9.Add(rule);
@@ -178,6 +197,17 @@ public class LSystemController : MonoBehaviour
         // DEBUG
         //UnityEngine.Debug.Log("Time for display took: " + watch.ElapsedMilliseconds);
         //UnityEngine.Debug.Log("Count of vertices in list: " + vertices.Count);
+        //
+
+        watch.Start();
+
+        BuildConnections();
+        roomManager.BuildDungeon(connections, end);
+
+        watch.Stop();
+
+        // DEBUG
+        //UnityEngine.Debug.Log("Time for dungeon took: " + watch.ElapsedMilliseconds);
         //
     }
 
@@ -471,6 +501,37 @@ public class LSystemController : MonoBehaviour
         float Nz = (pointToRotate.z - pivotPoint.z);
         angle = -angle * Mathf.PI / 180f;
         result = new Vector2(Mathf.Cos(angle) * Nx - Mathf.Sin(angle) * Nz + pivotPoint.x, Mathf.Sin(angle) * Nx + Mathf.Cos(angle) * Nz + pivotPoint.z);
+        
+        result.x = Mathf.Round(result.x);
+        result.y = Mathf.Round(result.y);
         return result;
+    }
+
+    void BuildConnections()
+    {
+        connections.Add(vertices[0].pos, new List<Vector3>());
+
+        for (int i = 1; i < vertices.Count; i += 2)
+        {
+            connections.Add(vertices[i].pos, new List<Vector3>());
+            connections[vertices[i].pos].Add(vertices[i - 1].pos);
+            connections[vertices[i - 1].pos].Add(vertices[i].pos);
+        }
+
+        end = vertices[vertices.Count - 1].pos;
+
+        // DEBUG
+        string s = "";
+        foreach (KeyValuePair<Vector3, List<Vector3>> k in connections)
+        {
+            s += k.Key + ": ";
+            foreach (Vector3 v in k.Value)
+            {
+                s += v + ", ";
+            }
+            s += "\n";
+        }
+        print(s);
+        //
     }
 }
