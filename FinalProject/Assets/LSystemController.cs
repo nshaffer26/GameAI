@@ -484,7 +484,7 @@ public class LSystemController : MonoBehaviour
                 }
 
                 // Prevent from moving up/down if there is an existing vertex above/below current
-                // Note: Not technically an overlap, but it makes the gemoetry look strange
+                // Note: Not technically an overlap, but it makes the geometry look strange
                 Vector3 prevAbove = new Vector3(verts[i - 1].pos.x, verts[i - 1].pos.y + Mathf.Round(initial_length / 2), verts[i - 1].pos.z);
                 Vector3 prevBelow = new Vector3(verts[i - 1].pos.x, verts[i - 1].pos.y - Mathf.Round(initial_length / 2), verts[i - 1].pos.z);
                 if (vertices[j].pos == above && verts[i - 1].pos.y > verts[i].pos.y)
@@ -513,7 +513,7 @@ public class LSystemController : MonoBehaviour
                 }
 
                 // Prevent from moving across if there is an existing vertex above/below that just moved or is about to move up/down
-                // Note: Not technically an overlap, but it makes the gemoetry look strange
+                // Note: Not technically an overlap, but it makes the geometry look strange
                 if (j > 0 && vertices[j].pos == above && vertices[j - 1].pos.y < vertices[j].pos.y)
                 {
                     // There's an existing vertex above the current potential vertex
