@@ -8,11 +8,11 @@ public class RoomManager : MonoBehaviour
     public List<GameObject> rooms;
 
     /// <summary>
-    /// Assigns a room to each vertex in the dungeon based on it's connections to other rooms
+    /// Assigns a room to each vertex in the dungeon based on it's connections to other rooms.
     /// </summary>
     /// <param name="connections">A dictionary of vertices where each key is a unique vertex in the dungeon
-    ///     and each value a list of vertices that connect to the key</param>
-    /// <param name="end">The last vertex in the dungeon</param>
+    ///     and each value a list of vertices that connect to the key.</param>
+    /// <param name="end">The last vertex in the dungeon.</param>
     public void BuildDungeon(Dictionary<Vector3, List<Vector3>> connections, Vector3 end)
     {
         Vector3 prev = Vector3.zero;

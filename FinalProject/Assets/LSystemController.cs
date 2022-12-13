@@ -11,26 +11,27 @@ public class LSystemController : MonoBehaviour
     Hashtable ruleHash = new Hashtable(100);
 
     float initial_length = 6.0f;
-    public float initial_radius = 1.0f;
     List<byte> start;
     List<byte> lang;
     GameObject contents;
     float angleToUse = 90f;
     int iterations = 6;
 
+    // Flag to determine if the dungeon should branch up/down
     public bool multiLevel = true;
 
-    // current location and angle
+    // Current location and angle
     Vector3 position = new Vector3(0, 0, 0);
     float angle = 0f;
 
-    // to push and pop location and angles
+    // To push and pop location and angles
     Stack<float> positions = new Stack<float>(100);
     Stack<float> angles = new Stack<float>(100);
 
-    // for drawing lines
+    // For drawing lines
     public float lineWidth = 1.0f;
     Mesh lineMesh;
+
     struct vertexInfo
     {
         public Vector3 pos;
@@ -61,21 +62,16 @@ public class LSystemController : MonoBehaviour
 
         roomManager = GameObject.Find("RoomManager").GetComponent<RoomManager>();
 
-        // for timing start/finish of the rule generation and display
-        // can be commented out
-        Stopwatch watch = new Stopwatch();
-
-        // create the object to draw with some default values for the mesh and rendering
+        // Create the object to draw with some default values for the mesh and rendering
         contents = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        contents.transform.position = new Vector3(0, 0f, 0);
+        contents.transform.position = new Vector3(0f, 0f, 0f);
         filter = (MeshFilter)contents.GetComponent("MeshFilter");
         MeshRenderer renderer = (MeshRenderer)filter.GetComponent<MeshRenderer>();
         renderer.material = lineMaterial;
         lineMesh = new Mesh();
         filter.mesh = lineMesh;
 
-        watch.Start();
-        // we set the start with the expected max size of the language iteration
+        // We set the start with the expected max size of the language iteration
         start = new List<byte>(100);
 
         // Axiom  : 809
@@ -181,44 +177,23 @@ public class LSystemController : MonoBehaviour
 
         vertices = new List<vertexInfo>();
         indices = new List<int>();
-        run(iterations);
 
-        // now print out the time for gen
-        watch.Stop();
+        Run(iterations);
 
         // DEBUG
-        //UnityEngine.Debug.Log("Time for generation took: " + watch.ElapsedMilliseconds);
-        //UnityEngine.Debug.Log("Size of lang is: " + lang.Count);
+        DrawPath();
         //
-
-        watch.Reset();
-
-        // print out the time for display
-        watch.Start();
-
-        display4();
-
-        watch.Stop();
-
-        // DEBUG
-        //UnityEngine.Debug.Log("Time for display took: " + watch.ElapsedMilliseconds);
-        //UnityEngine.Debug.Log("Count of vertices in list: " + vertices.Count);
-        //
-
-        watch.Start();
 
         BuildConnections();
         roomManager.BuildDungeon(connections, end);
-
-        watch.Stop();
-
-        // DEBUG
-        //UnityEngine.Debug.Log("Time for dungeon took: " + watch.ElapsedMilliseconds);
-        //
     }
 
-    // Get a rule from a given letter that's in our array
-    byte[] getRule(byte[] input)
+    /// <summary>
+    /// Get a rule from a given letter that's in the byte array.
+    /// </summary>
+    /// <param name="input">The byte which will be changed according to its available rules.</param>
+    /// <returns>A byte array which represents the changed input.</returns>
+    byte[] GetRule(byte[] input)
     {
         byte[] chosenRule = new byte[input.Length];
         input.CopyTo(chosenRule, 0);
@@ -246,7 +221,7 @@ public class LSystemController : MonoBehaviour
             {
                 chosenRule = rules[ruleIndices.Pop()];
                 List<byte> potentialRule = new List<byte>(chosenRule);
-                verticesAdded = addVerticies(potentialRule);
+                verticesAdded = AddVerticies(potentialRule);
             }
             while (ruleIndices.Count > 0 && !verticesAdded);
 
@@ -277,35 +252,31 @@ public class LSystemController : MonoBehaviour
                     }
                     while (true);
                     chosenRule = new byte[1] { 9 };
-                    getRule(chosenRule);
+                    GetRule(chosenRule);
                 }
                 else
                 {
                     // A rule could not be found, replace with a terminating character
                     chosenRule = new byte[1] { 0 };
-                    print("RULE NOT FOUND");
-                    addVerticies(new List<byte>(chosenRule));
+                    AddVerticies(new List<byte>(chosenRule));
                 }
             }
         }
         else
         {
             // There isn't a rule for this byte, see if vertices can be added
-            print("NO RULE");
-            addVerticies(new List<byte>(chosenRule));
+            AddVerticies(new List<byte>(chosenRule));
         }
-        string s = "";
-        foreach(byte b in chosenRule)
-        {
-            s += b + ".";
-        }
-        print(s);
+
         return chosenRule;
     }
 
-    // Run the lsystem iterations number of times on the start axiom.
-    // note that this is double buffering
-    void run(int iterations)
+    /// <summary>
+    /// Run the L-System <c>iterations</c> number of times on the start axiom. Note that this is double buffering.
+    /// Adapted from https://github.com/profjdbayliss/lsystem.
+    /// </summary>
+    /// <param name="iterations">The number of times to iterate over the byte array.</param>
+    void Run(int iterations)
     {
         List<byte> buffer1 = start;
         List<byte> buffer2 = new List<byte>(100);
@@ -316,7 +287,6 @@ public class LSystemController : MonoBehaviour
 
         for (int i = 0; i < iterations; i++)
         {
-            print("ITERATION " + i);
             // Reset positions and angles
             vertices.Clear();
             indices.Clear();
@@ -329,7 +299,7 @@ public class LSystemController : MonoBehaviour
             for (int j = 0; j < currentCount; j++)
             {
                 singleByte[0] = currentList[j];
-                byte[] buff = getRule(singleByte);
+                byte[] buff = GetRule(singleByte);
                 newList.AddRange(buff);
             }
             List<byte> tmp = currentList;
@@ -346,18 +316,23 @@ public class LSystemController : MonoBehaviour
         {
             s += v.pos + ", ";
         }
-        print(s);
+        UnityEngine.Debug.Log(s);
 
         s = "Lang (" + lang.Count + "): ";
         foreach (byte b in lang)
         {
             s += b + ".";
         }
-        print(s);
+        UnityEngine.Debug.Log(s);
         //
     }
 
-    bool addVerticies(List<byte> str)
+    /// <summary>
+    /// Try to add new vertices to the list of vertices based on the given byte string.
+    /// </summary>
+    /// <param name="str">The bytes to be converted to a set of vertices.</param>
+    /// <returns><c>true</c> if the vertices were successfully added, <c>false</c> otherwise.</returns>
+    bool AddVerticies(List<byte> str)
     {
         List<vertexInfo> potentialVertices = new List<vertexInfo>();
 
@@ -370,29 +345,20 @@ public class LSystemController : MonoBehaviour
         float posy = positionTemp.y;
         float posz = positionTemp.z;
 
-        // location and rotation to draw towards
+        // Location and rotation to draw towards
         Vector3 newPosition;
         Vector2 rotated;
 
         Color color = Color.green;
 
-        string s = "";
-        foreach (byte b in str)
-        {
-            s += b + ".";
-        }
-        s += ": ";
-
-        // start at 0,0,0
-        // Apply all the drawing rules to the lsystem string
+        // Start at 0,0,0
+        // Apply all the drawing rules to the L-System string
         for (int i = 0; i < str.Count; i++)
         {
             byte buff = str[i];
-            s += buff + ".";
             switch (buff)
             {
                 case 0:
-                    s += ")";
                     break;
                 case 6:
                 case 7:
@@ -402,28 +368,24 @@ public class LSystemController : MonoBehaviour
                 case 1:
                     if (buff == 8) color = Color.blue;
                     else if (buff == 9) color = Color.red;
-                    else if (buff == 10)
-                    {
-                        s += "$";
-                        color = Color.yellow;
-                    }
+                    else if (buff == 10) color = Color.yellow;
                     else color = Color.green;
+
                     if (buff == 6) posy += Mathf.Round(initial_length / 2);
                     if (buff == 7) posy -= Mathf.Round(initial_length / 2);
 
-                    if (buff == 1)
-                    {
-                        s += "!";
-                    }
-
-                    // draw a line 
+                    // Draw a line 
                     posz += initial_length;
-                    rotated = rotate(positionTemp, new Vector3(positionTemp.x, posy, posz), angleTemp);
+                    rotated = Rotate(positionTemp, new Vector3(positionTemp.x, posy, posz), angleTemp);
                     newPosition = new Vector3(rotated.x, posy, rotated.y);
 
-                    potentialVertices.AddRange(addLineToMesh(lineMesh, positionTemp, newPosition, color));
+                    vertexInfo[] lineVerts = new vertexInfo[]
+                    {
+                        new vertexInfo(positionTemp, color), new vertexInfo(newPosition, color)
+                    };
+                    potentialVertices.AddRange(lineVerts);
 
-                    // set up for the next draw
+                    // Set up for the next draw
                     positionTemp = newPosition;
                     posx = newPosition.x;
                     posy = newPosition.y;
@@ -431,17 +393,17 @@ public class LSystemController : MonoBehaviour
 
                     break;
                 case 2:
-                    // Turn left 90
+                    //<: Turn left 90
                     angleTemp -= angleToUse;
 
                     break;
                 case 3:
-                    // Turn right 90
+                    //>: Turn right 90
                     angleTemp += angleToUse;
 
                     break;
                 case 4:
-                    //[: push position and angle
+                    //[: Push position and angle
                     positionsTemp.Push(posz);
                     positionsTemp.Push(posy);
                     positionsTemp.Push(posx);
@@ -450,7 +412,7 @@ public class LSystemController : MonoBehaviour
 
                     break;
                 case 5:
-                    //]: pop position and angle
+                    //]: Pop position and angle
                     posx = positionsTemp.Pop();
                     posy = positionsTemp.Pop();
                     posz = positionsTemp.Pop();
@@ -459,14 +421,13 @@ public class LSystemController : MonoBehaviour
 
                     break;
                 default:
-                    s += "x";
                     break;
             }
         }
 
-        if (checkVertices(potentialVertices))
+        // The vertices are valid, add them
+        if (CheckVertices(potentialVertices))
         {
-            print(s);
             // Apply everything
             position = positionTemp;
             angle = angleTemp;
@@ -475,7 +436,6 @@ public class LSystemController : MonoBehaviour
 
             for (int i = 0; i < potentialVertices.Count; i += 2)
             {
-                // The vertices are valid, add them
                 int numberOfPoints = vertices.Count;
                 int[] indicesForLines = new int[] { 0 + numberOfPoints, 1 + numberOfPoints };
 
@@ -486,13 +446,16 @@ public class LSystemController : MonoBehaviour
 
             return true;
         }
-        else
-        {
-            return false;
-        }
+
+        return false;
     }
 
-    bool checkVertices(List<vertexInfo> verts)
+    /// <summary>
+    /// Check to see if the given vertices can be successfully added to the list of vertices without causing overlaps.
+    /// </summary>
+    /// <param name="verts">The potential vertices to be added.</param>
+    /// <returns><c>true</c> if the vertices can be added, <c>false</c> otherwise</returns>
+    bool CheckVertices(List<vertexInfo> verts)
     {
         // Don't check the first vertex since it will always be the last in vertices
         for (int i = 1; i < verts.Count; i++)
@@ -581,16 +544,16 @@ public class LSystemController : MonoBehaviour
         return true;
     }
 
-    void display4()
+    /// <summary>
+    /// Debug function. Draw the path the dungeon will follow. From https://github.com/profjdbayliss/lsystem.
+    /// </summary>
+    void DrawPath()
     {
-        //vertices.TrimExcess();
-        //indices.TrimExcess();
-
-        // after we recreate the mesh we need to assign it to the original object
+        // After we recreate the mesh we need to assign it to the original object
         MeshUpdateFlags flags = MeshUpdateFlags.DontNotifyMeshUsers & MeshUpdateFlags.DontRecalculateBounds
             & MeshUpdateFlags.DontResetBoneBounds & MeshUpdateFlags.DontValidateIndices;
 
-        // set vertices
+        // Set vertices
         int totalCount = vertices.Count;
         var layout = new[]
         {
@@ -600,13 +563,13 @@ public class LSystemController : MonoBehaviour
         lineMesh.SetVertexBufferParams(totalCount, layout);
         lineMesh.SetVertexBufferData(vertices, 0, 0, totalCount, 0, flags);
 
-        // set indices
+        // Set indices
         totalCount = indices.Count;
         UnityEngine.Rendering.IndexFormat format = IndexFormat.UInt32;
         lineMesh.SetIndexBufferParams(totalCount, format);
         lineMesh.SetIndexBufferData(indices, 0, 0, totalCount, flags);
 
-        // set submesh
+        // Set submesh
         SubMeshDescriptor desc = new SubMeshDescriptor(0, totalCount, MeshTopology.Lines);
         desc.bounds = new Bounds();
         desc.baseVertex = 0;
@@ -615,21 +578,15 @@ public class LSystemController : MonoBehaviour
         lineMesh.SetSubMesh(0, desc, flags);
     }
 
-    vertexInfo[] addLineToMesh(Mesh mesh, Vector3 from, Vector3 to, Color color)
-    {
-        vertexInfo[] lineVerts = new vertexInfo[] { new vertexInfo(from, color), new vertexInfo(to, color) };
-        //int numberOfPoints = vertices.Count;
-        //int[] indicesForLines = new int[] { 0 + numberOfPoints, 1 + numberOfPoints };
-
-        //vertices.AddRange(lineVerts);
-        //indices.AddRange(indicesForLines);
-
-        return lineVerts;
-    }
-
-    // rotate a line and return the position after rotation
-    // Assumes rotation around the Z axis
-    Vector2 rotate(Vector3 pivotPoint, Vector3 pointToRotate, float angle)
+    /// <summary>
+    /// Rotate a line and return the position after rotation. Assumes rotation around the Y axis.
+    /// From https://github.com/profjdbayliss/lsystem.
+    /// </summary>
+    /// <param name="pivotPoint">The point from which to rotate.</param>
+    /// <param name="pointToRotate">The point that will be rotated.</param>
+    /// <param name="angle">The angle to which to rotate <c>pointToRotate</c> around <c>pivotPoint</c>.</param>
+    /// <returns>A vector holding the new x and y values of the rotated vector.</returns>
+    Vector2 Rotate(Vector3 pivotPoint, Vector3 pointToRotate, float angle)
     {
         Vector2 result;
         float Nx = (pointToRotate.x - pivotPoint.x);
@@ -642,10 +599,16 @@ public class LSystemController : MonoBehaviour
         return result;
     }
 
+    /// <summary>
+    /// Build a dictionary of connected vertices where each key is a unique vertex in the dungeon
+    ///     and each value a list of vertices that connect to the key.
+    /// </summary>
     void BuildConnections()
     {
+        // Add the starting room
         connections.Add(vertices[0].pos, new List<Vector3>());
 
+        // Add the remaining vertices, skipping every other because they are repeats (i.e., only add endpoints)
         for (int i = 1; i < vertices.Count; i += 2)
         {
             connections.Add(vertices[i].pos, new List<Vector3>());
@@ -653,6 +616,7 @@ public class LSystemController : MonoBehaviour
             connections[vertices[i - 1].pos].Add(vertices[i].pos);
         }
 
+        // Set the "end" vertex as the last in the list of vertices
         end = vertices[vertices.Count - 1].pos;
 
         // DEBUG
@@ -666,7 +630,7 @@ public class LSystemController : MonoBehaviour
             }
             s += "\n";
         }
-        print(s);
+        UnityEngine.Debug.Log(s);
         //
     }
 }
